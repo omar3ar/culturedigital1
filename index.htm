@@ -1,0 +1,490 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TerraVision | Ressources Planétaires</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    
+    <!-- GSAP pour les animations UI -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.9.1/gsap.min.js"></script>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@300;500;700&family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'neon-blue': '#00f3ff',
+                        'neon-green': '#0aff00',
+                        'neon-orange': '#ff9d00',
+                        'neon-purple': '#bc13fe',
+                        'hud-black': 'rgba(10, 15, 30, 0.75)',
+                    },
+                    fontFamily: {
+                        'tech': ['Orbitron', 'sans-serif'],
+                        'body': ['Rajdhani', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #000; color: white; }
+        
+        /* HUD Grid Background */
+        .hud-grid {
+            background-image: 
+                linear-gradient(rgba(0, 243, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 243, 255, 0.1) 1px, transparent 1px);
+            background-size: 50px 50px;
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 0;
+            opacity: 0.2;
+        }
+
+        /* Glass Panel */
+        .glass-panel {
+            background: rgba(16, 24, 45, 0.6);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0, 243, 255, 0.2);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.1);
+        }
+
+        .glass-panel:hover {
+            border-color: rgba(0, 243, 255, 0.5);
+            box-shadow: 0 0 20px rgba(0, 243, 255, 0.2);
+        }
+
+        /* Active State for Buttons */
+        .resource-btn.active {
+            background: rgba(0, 243, 255, 0.15);
+            border-left: 4px solid #00f3ff;
+            color: #00f3ff;
+        }
+
+        /* Scanline Effect */
+        .scanline {
+            width: 100%;
+            height: 100px;
+            z-index: 10;
+            background: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0, 243, 255, 0.1) 50%, rgba(0,0,0,0) 100%);
+            opacity: 0.1;
+            background-size: 100% 100%;
+            position: absolute;
+            bottom: 100%;
+            animation: scanline 10s linear infinite;
+            pointer-events: none;
+        }
+
+        @keyframes scanline {
+            0% { top: -100px; }
+            100% { top: 100%; }
+        }
+
+        /* Loading Spinner */
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(0, 243, 255, 0.3);
+            border-radius: 50%;
+            border-top-color: #00f3ff;
+            animation: spin 1s ease-in-out infinite;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <!-- HUD Background -->
+    <div class="hud-grid"></div>
+    <div class="scanline"></div>
+
+    <!-- 3D Canvas -->
+    <canvas id="earth-canvas" class="absolute top-0 left-0 z-0"></canvas>
+
+    <!-- Header -->
+    <header class="absolute top-0 w-full p-6 z-20 flex justify-between items-center pointer-events-none">
+        <div>
+            <h1 class="font-tech text-3xl md:text-5xl text-white tracking-widest flex items-center gap-3">
+                <i class="fas fa-globe-americas text-neon-blue animate-pulse"></i>
+                TERRA<span class="text-neon-blue">VISION</span>
+            </h1>
+            <p class="font-body text-neon-blue tracking-widest text-sm uppercase opacity-70 mt-1">Moniteur de Ressources Planétaires v2.4</p>
+        </div>
+        <div class="hidden md:block text-right">
+            <div class="font-tech text-xl text-neon-blue" id="clock">00:00:00</div>
+            <div class="text-xs text-gray-400 font-body uppercase tracking-wider">Temps Universel Coordonné</div>
+        </div>
+    </header>
+
+    <!-- Main UI Container -->
+    <main class="absolute inset-0 z-10 flex flex-col md:flex-row pointer-events-none pt-24 pb-10 px-6 md:px-12">
+        
+        <!-- Left Panel: Navigation -->
+        <div class="w-full md:w-80 flex flex-col justify-center gap-4 pointer-events-auto order-2 md:order-1 mt-auto md:mt-0">
+            <div class="glass-panel p-1 rounded-lg">
+                <button onclick="switchResource('water')" id="btn-water" class="resource-btn active w-full p-4 text-left transition-all duration-300 hover:bg-white/5 rounded flex items-center justify-between group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-blue-900/50 flex items-center justify-center text-neon-blue border border-blue-500/30 group-hover:border-blue-400">
+                            <i class="fas fa-tint"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-tech text-lg text-white">Hydrosphère</h3>
+                            <p class="font-body text-xs text-blue-300">Océans & Eau Douce</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-neon-blue opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </button>
+            </div>
+
+            <div class="glass-panel p-1 rounded-lg">
+                <button onclick="switchResource('forest')" id="btn-forest" class="resource-btn w-full p-4 text-left transition-all duration-300 hover:bg-white/5 rounded flex items-center justify-between group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-green-900/50 flex items-center justify-center text-neon-green border border-green-500/30 group-hover:border-green-400">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-tech text-lg text-white">Biosphère</h3>
+                            <p class="font-body text-xs text-green-300">Forêts & Biodiversité</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-neon-green opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </button>
+            </div>
+
+            <div class="glass-panel p-1 rounded-lg">
+                <button onclick="switchResource('energy')" id="btn-energy" class="resource-btn w-full p-4 text-left transition-all duration-300 hover:bg-white/5 rounded flex items-center justify-between group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-orange-900/50 flex items-center justify-center text-neon-orange border border-orange-500/30 group-hover:border-orange-400">
+                            <i class="fas fa-bolt"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-tech text-lg text-white">Énergie</h3>
+                            <p class="font-body text-xs text-orange-300">Solaire, Éolien, Fossile</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-neon-orange opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </button>
+            </div>
+
+            <div class="glass-panel p-1 rounded-lg">
+                <button onclick="switchResource('mineral')" id="btn-mineral" class="resource-btn w-full p-4 text-left transition-all duration-300 hover:bg-white/5 rounded flex items-center justify-between group">
+                    <div class="flex items-center gap-4">
+                        <div class="w-10 h-10 rounded bg-purple-900/50 flex items-center justify-center text-neon-purple border border-purple-500/30 group-hover:border-purple-400">
+                            <i class="fas fa-gem"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-tech text-lg text-white">Lithosphère</h3>
+                            <p class="font-body text-xs text-purple-300">Minéraux & Métaux Rares</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-neon-purple opacity-0 group-hover:opacity-100 transition-opacity"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Right Panel: Info & Stats -->
+        <div class="w-full md:w-96 ml-auto pointer-events-auto order-1 md:order-2 mb-4 md:mb-0">
+            <div id="info-panel" class="glass-panel p-6 rounded-lg h-full relative overflow-hidden transform translate-x-0 transition-transform duration-500">
+                <div class="absolute top-0 right-0 p-2 opacity-50">
+                    <i class="fas fa-database text-4xl text-white/10"></i>
+                </div>
+                
+                <h2 id="panel-title" class="font-tech text-3xl text-neon-blue mb-2">HYDROSPHÈRE</h2>
+                <div class="h-1 w-20 bg-neon-blue mb-4" id="panel-line"></div>
+                
+                <p id="panel-desc" class="font-body text-gray-300 text-lg leading-relaxed mb-6">
+                    L'eau couvre 71% de la surface de la Terre. Seulement 2.5% est de l'eau douce, et moins de 1% est facilement accessible pour la consommation humaine.
+                </p>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div class="bg-black/40 p-3 rounded border border-white/10">
+                        <div class="text-xs text-gray-400 uppercase">Couverture</div>
+                        <div class="font-tech text-2xl text-white" id="stat-1">71%</div>
+                    </div>
+                    <div class="bg-black/40 p-3 rounded border border-white/10">
+                        <div class="text-xs text-gray-400 uppercase">Réserve Douce</div>
+                        <div class="font-tech text-2xl text-white" id="stat-2">2.5%</div>
+                    </div>
+                </div>
+
+                <!-- Action Button -->
+                <button class="w-full py-3 bg-neon-blue/10 border border-neon-blue text-neon-blue font-tech tracking-widest hover:bg-neon-blue hover:text-black transition-colors rounded uppercase text-sm">
+                    Analyser les données
+                </button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Loading Screen -->
+    <div id="loader" class="fixed inset-0 bg-black z-50 flex flex-col justify-center items-center">
+        <div class="spinner mb-6"></div>
+        <h2 class="font-tech text-2xl text-neon-blue tracking-widest">INITIALISATION DU SYSTÈME</h2>
+        <p class="font-body text-gray-500 mt-2">Chargement des textures planétaires...</p>
+    </div>
+
+    <script>
+        // --- DONNÉES ---
+        const resources = {
+            water: {
+                title: "HYDROSPHÈRE",
+                desc: "L'eau est la ressource la plus précieuse. Les calottes glaciaires fondent à un rythme accéléré, modifiant la salinité des océans et les courants marins mondiaux.",
+                color: "#00f3ff",
+                stat1: "71%",
+                stat2: "2.5%",
+                cameraPos: { x: 0, y: 0, z: 2.5 }
+            },
+            forest: {
+                title: "BIOSPHÈRE",
+                desc: "Les forêts abritent 80% de la biodiversité terrestre. La déforestation en Amazonie et en Afrique centrale menace l'équilibre carbone de la planète.",
+                color: "#0aff00",
+                stat1: "31%",
+                stat2: "-10M ha/an",
+                cameraPos: { x: 1.5, y: 0.5, z: 2 }
+            },
+            energy: {
+                title: "ÉNERGIE",
+                desc: "La transition vers les énergies renouvelables (solaire, éolien) s'accélère, mais les combustibles fossiles représentent encore 80% de la consommation mondiale.",
+                color: "#ff9d00",
+                stat1: "170 PWh",
+                stat2: "84%",
+                cameraPos: { x: -1.5, y: 0.2, z: 2.2 }
+            },
+            mineral: {
+                title: "LITHOSPHÈRE",
+                desc: "L'extraction de métaux rares (Lithium, Cobalt) est cruciale pour la technologie moderne, mais pose de graves problèmes éthiques et environnementaux.",
+                color: "#bc13fe",
+                stat1: "95 Mds T",
+                stat2: "Critique",
+                cameraPos: { x: 0.5, y: -1, z: 2.3 }
+            }
+        };
+
+        // --- THREE.JS SETUP ---
+        const canvas = document.getElementById('earth-canvas');
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        const renderer = new THREE.WebGLRenderer({ canvas: canvas, antialias: true, alpha: true });
+        
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setPixelRatio(window.devicePixelRatio);
+
+        // Groupe Terre pour rotation facile
+        const earthGroup = new THREE.Group();
+        scene.add(earthGroup);
+
+        // Texture Loader
+        const textureLoader = new THREE.TextureLoader();
+        
+        // 1. Sphère Terre (Base)
+        const earthGeometry = new THREE.SphereGeometry(1, 64, 64);
+        const earthMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_atmos_2048.jpg'),
+            specularMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_specular_2048.jpg'),
+            normalMap: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_normal_2048.jpg'),
+            specular: new THREE.Color(0x333333),
+            shininess: 5
+        });
+        const earthMesh = new THREE.Mesh(earthGeometry, earthMaterial);
+        earthGroup.add(earthMesh);
+
+        // 2. Nuages (Légèrement plus grand)
+        const cloudGeometry = new THREE.SphereGeometry(1.02, 64, 64);
+        const cloudMaterial = new THREE.MeshPhongMaterial({
+            map: textureLoader.load('https://raw.githubusercontent.com/mrdoob/three.js/master/examples/textures/planets/earth_clouds_1024.png'),
+            transparent: true,
+            opacity: 0.8,
+            side: THREE.DoubleSide,
+            blending: THREE.AdditiveBlending,
+            depthWrite: false
+        });
+        const cloudMesh = new THREE.Mesh(cloudGeometry, cloudMaterial);
+        earthGroup.add(cloudMesh);
+
+        // 3. Atmosphère (Glow)
+        const atmosGeometry = new THREE.SphereGeometry(1.15, 64, 64);
+        const atmosMaterial = new THREE.MeshPhongMaterial({
+            color: 0x00f3ff,
+            transparent: true,
+            opacity: 0.1,
+            side: THREE.BackSide,
+            blending: THREE.AdditiveBlending
+        });
+        const atmosMesh = new THREE.Mesh(atmosGeometry, atmosMaterial);
+        earthGroup.add(atmosMesh);
+
+        // 4. Étoiles (Fond)
+        const starGeometry = new THREE.BufferGeometry();
+        const starMaterial = new THREE.PointsMaterial({color: 0xffffff, size: 0.02});
+        const starVertices = [];
+        for(let i=0; i<2000; i++) {
+            const x = (Math.random() - 0.5) * 20;
+            const y = (Math.random() - 0.5) * 20;
+            const z = - (Math.random()) * 10 - 2; // Derrière la terre
+            starVertices.push(x,y,z);
+        }
+        starGeometry.setAttribute('position', new THREE.Float32BufferAttribute(starVertices, 3));
+        const stars = new THREE.Points(starGeometry, starMaterial);
+        scene.add(stars);
+
+        // Lumières
+        const ambientLight = new THREE.AmbientLight(0x333333);
+        scene.add(ambientLight);
+
+        const sunLight = new THREE.DirectionalLight(0xffffff, 1);
+        sunLight.position.set(5, 3, 5);
+        scene.add(sunLight);
+
+        const spotLight = new THREE.SpotLight(0x00f3ff, 2); // Lumière colorée dynamique
+        spotLight.position.set(2, 2, 2);
+        scene.add(spotLight);
+
+        // Caméra Initiale
+        camera.position.z = 2.5;
+
+        // Gestion du chargement
+        THREE.DefaultLoadingManager.onLoad = function ( ) {
+            const loader = document.getElementById('loader');
+            gsap.to(loader, { opacity: 0, duration: 1, onComplete: () => loader.remove() });
+        };
+
+        // --- ANIMATION LOOP ---
+        const clock = new THREE.Clock();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            
+            const delta = clock.getDelta();
+
+            // Rotation Terre
+            earthMesh.rotation.y += 0.05 * delta;
+            
+            // Rotation Nuages (plus rapide et axe différent)
+            cloudMesh.rotation.y += 0.07 * delta;
+            cloudMesh.rotation.x += 0.01 * delta;
+
+            // Mouvement léger des étoiles
+            stars.rotation.z -= 0.01 * delta;
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // --- INTERACTION & UI LOGIC ---
+        
+        let currentResource = 'water';
+
+        function switchResource(type) {
+            if(type === currentResource) return;
+            currentResource = type;
+            const data = resources[type];
+
+            // 1. UI Updates
+            // Reset buttons
+            document.querySelectorAll('.resource-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.style.borderLeftColor = 'transparent';
+                btn.querySelector('div div').classList.remove('text-' + data.color.replace('#', '')); // Complex logic simplified below via styles
+                // Reset styling manually for simplicity in vanilla JS
+                const iconBox = btn.querySelector('.w-10');
+                iconBox.style.borderColor = 'rgba(255,255,255,0.1)';
+            });
+
+            // Activate button
+            const activeBtn = document.getElementById(`btn-${type}`);
+            activeBtn.classList.add('active');
+            activeBtn.style.borderLeftColor = data.color;
+            activeBtn.querySelector('.w-10').style.borderColor = data.color;
+
+            // Update Info Panel with GSAP Animation
+            const panel = document.getElementById('info-panel');
+            
+            gsap.to(panel, { opacity: 0, x: 20, duration: 0.3, onComplete: () => {
+                // Update Text content
+                document.getElementById('panel-title').innerText = data.title;
+                document.getElementById('panel-title').style.color = data.color;
+                
+                document.getElementById('panel-line').style.backgroundColor = data.color;
+                
+                document.getElementById('panel-desc').innerText = data.desc;
+                
+                document.getElementById('stat-1').innerText = data.stat1;
+                document.getElementById('stat-2').innerText = data.stat2;
+
+                // Animate back in
+                gsap.to(panel, { opacity: 1, x: 0, duration: 0.5 });
+            }});
+
+            // 2. 3D Scene Updates
+            
+            // Change Atmosphere Color
+            const newColor = new THREE.Color(data.color);
+            gsap.to(atmosMaterial.color, { r: newColor.r, g: newColor.g, b: newColor.b, duration: 1 });
+            
+            // Change Spotlight Color
+            gsap.to(spotLight.color, { r: newColor.r, g: newColor.g, b: newColor.b, duration: 1 });
+
+            // Move Camera (Simulate looking at different parts)
+            gsap.to(camera.position, {
+                x: data.cameraPos.x,
+                y: data.cameraPos.y,
+                z: data.cameraPos.z,
+                duration: 2,
+                ease: "power2.inOut",
+                onUpdate: () => camera.lookAt(0,0,0)
+            });
+        }
+
+        // Clock Update
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('clock').innerText = now.toISOString().split('T')[1].split('.')[0];
+        }, 1000);
+
+        // Responsive Resize
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        });
+
+        // Mouse Interaction for rotation (Simple)
+        let isDragging = false;
+        let previousMousePosition = { x: 0, y: 0 };
+
+        document.addEventListener('mousedown', () => isDragging = true);
+        document.addEventListener('mouseup', () => isDragging = false);
+        
+        document.addEventListener('mousemove', (e) => {
+            if (isDragging) {
+                const deltaMove = {
+                    x: e.offsetX - previousMousePosition.x,
+                    y: e.offsetY - previousMousePosition.y
+                };
+
+                const rotateSpeed = 0.005;
+                
+                earthGroup.rotation.y += deltaMove.x * rotateSpeed;
+                earthGroup.rotation.x += deltaMove.y * rotateSpeed;
+            }
+            previousMousePosition = { x: e.offsetX, y: e.offsetY };
+        });
+
+    </script>
+</body>
+</html>
