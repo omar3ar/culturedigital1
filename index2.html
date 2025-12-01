@@ -3,599 +3,342 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>L'ÉCLIPSE | Expérience Gastronomique</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Three.js pour l'animation 3D de fond -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
-    
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Montserrat:wght@200;400;600&display=swap" rel="stylesheet">
-    
-    <!-- FontAwesome -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        gold: '#D4AF37',
-                        dark: '#050505',
-                        glass: 'rgba(255, 255, 255, 0.05)',
-                    },
-                    fontFamily: {
-                        serif: ['Cinzel', 'serif'],
-                        sans: ['Montserrat', 'sans-serif'],
-                    },
-                    animation: {
-                        'float': 'float 6s ease-in-out infinite',
-                    },
-                    keyframes: {
-                        float: {
-                            '0%, 100%': { transform: 'translateY(0)' },
-                            '50%': { transform: 'translateY(-20px)' },
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
+    <title>WARZONE SUPPLY | Équipement Tactique</title>
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
     <style>
+        /* --- VARIABLES & THEME --- */
+        :root {
+            --army-green: #4b5320;
+            --neon-green: #39ff14;
+            --dark-metal: #1a1a1a;
+            --panel-bg: #222;
+            --text-color: #cfcfcf;
+            --border-color: #333;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            background-color: #050505;
-            color: #ffffff;
-            overflow-x: hidden;
+            font-family: 'Rajdhani', sans-serif;
+            background-color: #0f0f0f;
+            background-image: radial-gradient(#1a1a1a 1px, transparent 1px);
+            background-size: 20px 20px;
+            color: var(--text-color);
         }
 
-        /* Canvas Three.js en arrière-plan */
-        #bg-canvas {
-            position: fixed;
+        /* --- HEADER HUD --- */
+        header {
+            background: rgba(10, 10, 10, 0.95);
+            border-bottom: 2px solid var(--army-green);
+            padding: 20px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.6;
+            z-index: 100;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.8);
         }
 
-        /* Scrollbar moderne */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: #000;
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #D4AF37;
-            border-radius: 4px;
+        .brand {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 2rem;
+            color: var(--neon-green);
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            text-shadow: 0 0 10px rgba(57, 255, 20, 0.5);
         }
 
-        /* Effet Glassmorphism */
-        .glass-panel {
-            background: rgba(20, 20, 20, 0.6);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.08);
+        .status {
+            font-family: 'Share Tech Mono', monospace;
+            color: var(--army-green);
+            font-size: 0.9rem;
         }
 
-        /* 3D Slider Container */
-        .slider-3d-container {
-            perspective: 1000px;
-            height: 400px;
+        /* --- NAVIGATION FILTERS --- */
+        .filter-container {
             display: flex;
             justify-content: center;
-            align-items: center;
-            position: relative;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 40px 20px;
+            background: linear-gradient(to bottom, #111, transparent);
         }
 
-        .slider-card {
-            width: 300px;
-            height: 400px;
-            position: absolute;
-            transition: all 0.5s ease-out;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+        .filter-btn {
+            background: var(--dark-metal);
+            border: 1px solid var(--army-green);
+            color: #888;
+            padding: 10px 30px;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 1px;
             cursor: pointer;
-            background: #111;
-            border: 1px solid #D4AF37;
-        }
-        
-        .slider-card img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            transition: transform 0.5s;
+            transition: 0.3s;
+            clip-path: polygon(10% 0, 100% 0, 100% 80%, 90% 100%, 0 100%, 0 20%);
         }
 
-        .slider-card:hover img {
-            transform: scale(1.1);
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--army-green);
+            color: white;
+            box-shadow: 0 0 15px rgba(75, 83, 32, 0.6);
         }
 
-        .slider-content {
-            position: absolute;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+        /* --- GRID SYSTEM --- */
+        .grid-container {
+            max-width: 1400px;
+            margin: 0 auto;
             padding: 20px;
-            transform: translateY(100px);
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        /* --- WEAPON CARD --- */
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            position: relative;
+            overflow: hidden;
             transition: 0.3s;
         }
 
-        .slider-card.active .slider-content {
-            transform: translateY(0);
-        }
-
-        /* Menu Grid Animations */
-        .menu-item {
-            transition: transform 0.3s, border-color 0.3s;
-        }
-        .menu-item:hover {
+        .card:hover {
+            border-color: var(--neon-green);
             transform: translateY(-5px);
-            border-color: #D4AF37;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.7);
         }
 
-        /* Loader */
-        #loader {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 100;
+        .card-header {
+            background: #151515;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 0.8rem;
+            color: #666;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .img-container {
+            height: 200px;
+            width: 100%;
+            background: #1e1e1e;
             display: flex;
             justify-content: center;
             align-items: center;
-            transition: opacity 0.8s;
+            overflow: hidden;
         }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.8;
+            transition: 0.5s;
+        }
+
+        .card:hover .img-container img {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        .item-name {
+            font-size: 1.6rem;
+            color: white;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+        }
+
+        .item-category {
+            color: var(--army-green);
+            font-size: 0.9rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            display: block;
+        }
+
+        /* Stats Bars */
+        .stats {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+        .stat-row {
+            display: flex;
+            align-items: center;
+            font-size: 0.8rem;
+            color: #888;
+        }
+        .stat-label { width: 60px; }
+        .bar-bg {
+            flex-grow: 1;
+            height: 4px;
+            background: #333;
+            margin-left: 10px;
+        }
+        .bar-fill {
+            height: 100%;
+            background: var(--army-green);
+        }
+
+        .price-tag {
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.4rem;
+            color: var(--neon-green);
+            float: right;
+        }
+
+        .btn-action {
+            width: 100%;
+            padding: 15px;
+            margin-top: 10px;
+            background: transparent;
+            border: 1px solid var(--army-green);
+            color: var(--army-green);
+            font-family: 'Share Tech Mono', monospace;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-action:hover {
+            background: var(--army-green);
+            color: white;
+        }
+
     </style>
 </head>
-<body class="font-sans antialiased">
+<body>
 
-    <!-- Loader -->
-    <div id="loader">
-        <div class="text-center">
-            <h1 class="text-gold text-4xl font-serif tracking-widest animate-pulse">L'ÉCLIPSE</h1>
-            <p class="text-gray-500 text-xs mt-2 tracking-widest uppercase">Chargement de l'expérience</p>
-        </div>
+    <header>
+        <div class="brand">Warzone<span style="color:white;">Supply</span></div>
+        <div class="status">SYSTEM: ONLINE | SERVER: SECURE</div>
+    </header>
+
+    <div class="filter-container">
+        <button class="filter-btn active" onclick="filterItems('all')">Tous les systèmes</button>
+        <button class="filter-btn" onclick="filterItems('pistolet')">Armes de Poing</button>
+        <button class="filter-btn" onclick="filterItems('gilet')">Protection</button>
+        <button class="filter-btn" onclick="filterItems('grenade')">Explosifs</button>
+        <button class="filter-btn" onclick="filterItems('missile')">Missiles</button>
+        <button class="filter-btn" onclick="filterItems('drone')">Drones</button>
+        <button class="filter-btn" onclick="filterItems('tank')">Blindés</button>
     </div>
 
-    <!-- Background 3D -->
-    <canvas id="bg-canvas"></canvas>
-
-    <!-- Navigation -->
-    <nav class="fixed w-full z-50 glass-panel border-b-0 border-white/10 transition-all duration-300" id="navbar">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex items-center justify-between h-20">
-                <div class="flex-shrink-0 cursor-pointer" onclick="window.scrollTo(0,0)">
-                    <span class="text-2xl font-serif text-white tracking-widest">L'<span class="text-gold">ÉCLIPSE</span></span>
-                </div>
-                <div class="hidden md:block">
-                    <div class="ml-10 flex items-baseline space-x-8">
-                        <a href="#home" class="text-white hover:text-gold px-3 py-2 rounded-md text-sm font-medium tracking-wide transition-colors">ACCUEIL</a>
-                        <a href="#specialities" class="text-white hover:text-gold px-3 py-2 rounded-md text-sm font-medium tracking-wide transition-colors">SPÉCIALITÉS 3D</a>
-                        <a href="#menu" class="text-white hover:text-gold px-3 py-2 rounded-md text-sm font-medium tracking-wide transition-colors">LA CARTE</a>
-                        <a href="#reservation" class="bg-gold text-black hover:bg-white px-5 py-2 rounded-full text-sm font-bold transition-all shadow-lg hover:shadow-gold/50">RÉSERVER</a>
-                    </div>
-                </div>
-                <div class="-mr-2 flex md:hidden">
-                    <button type="button" class="text-white hover:text-gold p-2" onclick="document.getElementById('mobile-menu').classList.toggle('hidden')">
-                        <i class="fas fa-bars text-xl"></i>
-                    </button>
-                </div>
-            </div>
+    <div class="grid-container" id="product-grid">
         </div>
-        <!-- Mobile Menu -->
-        <div class="hidden md:hidden bg-black/95 absolute w-full" id="mobile-menu">
-            <div class="px-2 pt-2 pb-3 space-y-1 sm:px-3 text-center">
-                <a href="#home" class="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium">Accueil</a>
-                <a href="#menu" class="text-gray-300 hover:text-white block px-3 py-2 text-base font-medium">Menu</a>
-                <a href="#reservation" class="text-gold block px-3 py-2 text-base font-medium">Réserver</a>
-            </div>
-        </div>
-    </nav>
-
-    <!-- Hero Section -->
-    <section id="home" class="relative h-screen flex items-center justify-center overflow-hidden">
-        <div class="relative z-10 text-center px-4">
-            <h2 class="text-gold text-sm md:text-lg tracking-[0.5em] uppercase mb-4 animate-float">Bienvenue dans le futur</h2>
-            <h1 class="text-5xl md:text-8xl font-serif text-white mb-6 leading-tight">
-                GASTRONOMIE <br> <span class="text-transparent bg-clip-text bg-gradient-to-r from-gold to-yellow-200">VISIONNAIRE</span>
-            </h1>
-            <p class="mt-4 max-w-2xl mx-auto text-gray-400 text-lg md:text-xl font-light">
-                Une fusion entre art culinaire, design et technologie.
-            </p>
-            <div class="mt-10 flex justify-center gap-6">
-                <a href="#menu" class="px-8 py-3 border border-gold text-gold hover:bg-gold hover:text-black transition-all duration-300 uppercase tracking-widest text-sm">
-                    Découvrir le Menu
-                </a>
-            </div>
-        </div>
-        <!-- Decorative Circle -->
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] border border-gold/20 rounded-full animate-[spin_20s_linear_infinite]"></div>
-        <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] border border-white/5 rounded-full animate-[spin_30s_linear_infinite_reverse]"></div>
-    </section>
-
-    <!-- 3D Slider Section (Spécialités) -->
-    <section id="specialities" class="py-24 relative overflow-hidden">
-        <div class="max-w-7xl mx-auto px-4 relative z-10">
-            <div class="text-center mb-16">
-                <h2 class="text-gold tracking-[0.3em] uppercase text-sm mb-2">Nos Signatures</h2>
-                <h3 class="text-4xl md:text-5xl font-serif text-white">Sélection du Chef</h3>
-            </div>
-
-            <div class="slider-3d-container" id="slider-3d">
-                <!-- Cards injected by JS -->
-            </div>
-            
-            <div class="flex justify-center mt-10 gap-4">
-                <button onclick="moveSlide(-1)" class="w-12 h-12 rounded-full border border-white/20 text-white hover:bg-gold hover:text-black hover:border-gold transition-all flex items-center justify-center">
-                    <i class="fas fa-chevron-left"></i>
-                </button>
-                <button onclick="moveSlide(1)" class="w-12 h-12 rounded-full border border-white/20 text-white hover:bg-gold hover:text-black hover:border-gold transition-all flex items-center justify-center">
-                    <i class="fas fa-chevron-right"></i>
-                </button>
-            </div>
-        </div>
-    </section>
-
-    <!-- Menu Section -->
-    <section id="menu" class="py-20 bg-dark/50">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
-                <div>
-                    <h2 class="text-gold tracking-[0.3em] uppercase text-sm mb-2">La Carte</h2>
-                    <h3 class="text-4xl font-serif text-white">Créations Culinaires</h3>
-                </div>
-                
-                <!-- Menu Filters -->
-                <div class="flex space-x-2 mt-6 md:mt-0 overflow-x-auto pb-2 md:pb-0">
-                    <button class="menu-filter active px-6 py-2 rounded-full text-sm uppercase tracking-wide border border-gold bg-gold text-black transition-all" data-filter="all">Tout</button>
-                    <button class="menu-filter px-6 py-2 rounded-full text-sm uppercase tracking-wide border border-white/10 hover:border-gold text-gray-300 transition-all" data-filter="entree">Entrées</button>
-                    <button class="menu-filter px-6 py-2 rounded-full text-sm uppercase tracking-wide border border-white/10 hover:border-gold text-gray-300 transition-all" data-filter="plat">Plats</button>
-                    <button class="menu-filter px-6 py-2 rounded-full text-sm uppercase tracking-wide border border-white/10 hover:border-gold text-gray-300 transition-all" data-filter="dessert">Desserts</button>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8" id="menu-grid">
-                <!-- Menu Items injected by JS -->
-            </div>
-        </div>
-    </section>
-
-    <!-- Reservation / CTA -->
-    <section id="reservation" class="py-24 relative">
-        <div class="absolute inset-0 bg-[url('https://images.unsplash.com/photo-1559339352-11d035aa65de?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80')] bg-cover bg-center opacity-20"></div>
-        <div class="absolute inset-0 bg-gradient-to-t from-dark via-dark/80 to-transparent"></div>
-        
-        <div class="max-w-4xl mx-auto px-4 relative z-10 text-center glass-panel p-10 md:p-16 rounded-2xl">
-            <h2 class="text-3xl md:text-5xl font-serif text-white mb-6">Réservez votre table</h2>
-            <p class="text-gray-300 mb-8 font-light">
-                Une expérience unique vous attend. Places limitées pour garantir l'excellence du service.
-            </p>
-            
-            <form class="space-y-4 text-left" onsubmit="event.preventDefault(); showNotification('Demande de réservation envoyée !');">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="group">
-                        <label class="block text-xs uppercase text-gold mb-1 tracking-wider">Date</label>
-                        <input type="date" class="w-full bg-white/5 border border-white/10 rounded-none p-3 text-white focus:outline-none focus:border-gold transition-colors">
-                    </div>
-                    <div class="group">
-                        <label class="block text-xs uppercase text-gold mb-1 tracking-wider">Heure</label>
-                        <select class="w-full bg-white/5 border border-white/10 rounded-none p-3 text-white focus:outline-none focus:border-gold transition-colors">
-                            <option class="text-black">19:00</option>
-                            <option class="text-black">20:00</option>
-                            <option class="text-black">21:00</option>
-                            <option class="text-black">22:00</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div class="group">
-                        <label class="block text-xs uppercase text-gold mb-1 tracking-wider">Nom</label>
-                        <input type="text" placeholder="Votre Nom" class="w-full bg-white/5 border border-white/10 rounded-none p-3 text-white focus:outline-none focus:border-gold transition-colors">
-                    </div>
-                    <div class="group">
-                        <label class="block text-xs uppercase text-gold mb-1 tracking-wider">Personnes</label>
-                        <input type="number" min="1" value="2" class="w-full bg-white/5 border border-white/10 rounded-none p-3 text-white focus:outline-none focus:border-gold transition-colors">
-                    </div>
-                </div>
-                <button class="w-full bg-gold hover:bg-white text-black font-bold py-4 mt-4 tracking-widest uppercase transition-all">
-                    Confirmer
-                </button>
-            </form>
-        </div>
-    </section>
-
-    <!-- Footer -->
-    <footer class="bg-black border-t border-white/10 pt-16 pb-8">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center md:items-start gap-8">
-            <div class="text-center md:text-left">
-                <span class="text-2xl font-serif text-white tracking-widest">L'<span class="text-gold">ÉCLIPSE</span></span>
-                <p class="text-gray-500 text-sm mt-4 max-w-xs">
-                    EHEI OUJDA <br>
-                    OMAR EL QESSOUAR
-                </p>
-            </div>
-            <div class="text-center md:text-right">
-                <h4 class="text-white font-bold uppercase tracking-widest mb-4">Contact</h4>
-                <p class="text-gray-500 text-sm">12 Avenue Montaigne, 75008 Paris</p>
-                <p class="text-gray-500 text-sm mt-2">+33 1 23 45 67 89</p>
-                <div class="mt-4 space-x-4">
-                    <a href="#" class="text-gray-400 hover:text-gold transition-colors"><i class="fab fa-instagram"></i></a>
-                    <a href="#" class="text-gray-400 hover:text-gold transition-colors"><i class="fab fa-twitter"></i></a>
-                    <a href="#" class="text-gray-400 hover:text-gold transition-colors"><i class="fab fa-facebook"></i></a>
-                </div>
-            </div>
-        </div>
-        <div class="text-center mt-16 pt-8 border-t border-white/5">
-            <p class="text-gray-600 text-xs">© 2024 L'Éclipse. Tous droits réservés.</p>
-        </div>
-    </footer>
-
-    <!-- Notification Toast -->
-    <div id="notification" class="fixed bottom-10 right-10 bg-gold text-black px-6 py-3 rounded shadow-2xl transform translate-y-20 opacity-0 transition-all duration-300 z-50 font-bold">
-        Message
-    </div>
 
     <script>
-        // --- DATA ---
-        
-        // 3D Slider Data (Enriched with more items)
-        const specialities = [
-            { title: "Bœuf de Kobe", desc: "Fumé au bois de hêtre", img: "https://images.unsplash.com/photo-1544025162-d76690b68f63?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" },
-            { title: "Homard Bleu", desc: "Émulsion safran & yuzu", img: "https://images.unsplash.com/photo-1551248429-40975aa4de74?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" },
-            { title: "Truffe Noire", desc: "Risotto crémeux 24 mois", img: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" },
-            { title: "Saint-Jacques", desc: "Snackées, purée de pois", img: "https://images.unsplash.com/photo-1559339352-11d035aa65de?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" },
-            { title: "Sphère Chocolat", desc: "Cœur coulant passion", img: "https://images.unsplash.com/photo-1579372786545-d24232daf58c?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" },
-            { title: "Canard Laqué", desc: "Miel et épices douces", img: "https://images.unsplash.com/photo-1580476262798-bddd9f4b7369?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" },
-            { title: "Poulpe Grillé", desc: "Ail noir et paprika", img: "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" },
-            { title: "Caviar Osciètre", desc: "Blinis au sarrasin", img: "https://images.unsplash.com/photo-1585238342028-a02b137d2ed0?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" }
+        // --- BASE DE DONNÉES (30 ARTICLES) ---
+        const products = [
+            // PISTOLETS
+            { id: 1, type: 'pistolet', name: 'Glock 19 Gen5', price: '550 $', img: 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&w=600&q=80', stats: {dmg: 40, range: 30} },
+            { id: 2, type: 'pistolet', name: 'Desert Eagle .50', price: '1,800 $', img: 'https://upload.wikimedia.org/wikipedia/commons/b/b1/DesertEagle_50AE.jpg', stats: {dmg: 95, range: 40} },
+            { id: 3, type: 'pistolet', name: 'Beretta M9A3', price: '950 $', img: 'https://upload.wikimedia.org/wikipedia/commons/6/61/M9-pistolet.jpg', stats: {dmg: 45, range: 35} },
+            { id: 4, type: 'pistolet', name: 'Sig Sauer P320', price: '700 $', img: 'https://upload.wikimedia.org/wikipedia/commons/7/7a/Sig_Sauer_P320_Modular_Handgun_System.jpg', stats: {dmg: 42, range: 32} },
+            { id: 5, type: 'pistolet', name: 'Colt 1911 Tactical', price: '1,200 $', img: 'https://www.pewpewtactical.com/wp-content/uploads/2019/10/Wilson-Combat-CQB-with-Rail-and-TLR-1-HL-e1598746452667-1200x801.jpg', stats: {dmg: 60, range: 30} },
+
+            // GILETS
+            { id: 6, type: 'gilet', name: 'Kevlar Standard IIA', price: '450 $', img: 'https://image.made-in-china.com/318f0j00uacYvVMBgHgS/MyVideo-1-mp4.webp', stats: {dmg: 80, range: 10} },
+            { id: 7, type: 'gilet', name: 'Plate Carrier Molle', price: '250 $', img: 'https://images.unsplash.com/photo-1595590424283-b8f17842773f?auto=format&fit=crop&w=600&q=80', stats: {dmg: 60, range: 20} },
+            { id: 8, type: 'gilet', name: 'Juggernaut Suit', price: '5,000 $', img: 'https://www.rothco.com/upload/product/product/large/8922-A-amazon1.jpg', stats: {dmg: 100, range: 5} },
+            { id: 9, type: 'gilet', name: 'Gilet Céramique IV', price: '1,100 $', img: 'https://www.france-balistique.com/844/gilet-sdis-iv-armes-de-guerre-niveau-iv-stand-alone-en-ceramique-gilet-evolution-niveau-balistique-iv-ceramique-ce-gilet-pare-ba.jpg', stats: {dmg: 90, range: 10} },
+            { id: 10, type: 'gilet', name: 'Gilet Discret VIP', price: '800 $', img: 'https://www.lp-sa.com/4269-medium_default/housse-gilet-pare-balles-quick-release-premium-security.jpg', stats: {dmg: 50, range: 80} },
+
+            // GRENADES
+            { id: 11, type: 'grenade', name: 'M67 Frag', price: '45 $', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSR7mrq5JTbysHr5QeHlzTRLxvUIIaFiv6w5A&s', stats: {dmg: 90, range: 20} },
+            { id: 12, type: 'grenade', name: 'Flashbang M84', price: '35 $', img: 'https://i.ebayimg.com/images/g/kZ0AAOSwrZZkUshD/s-l400.jpg', stats: {dmg: 10, range: 30} },
+            { id: 13, type: 'grenade', name: 'Smoke M18', price: '30 $', img: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQxwjR5oo25yumOX3d_iwx1g1eU7xB2T1bRng&s', stats: {dmg: 0, range: 80} },
+            { id: 14, type: 'grenade', name: 'Incendiary Thermite', price: '80 $', img: 'https://api.army.mil/e2/c/images/2023/10/03/2177bfb8/original.jpg', stats: {dmg: 100, range: 10} },
+            { id: 15, type: 'grenade', name: 'EMP Grenade', price: '150 $', img: 'https://codefling.com/uploads/monthly_2024_09/empNade.png.50123b02febc96588d492fb837593864.png', stats: {dmg: 20, range: 50} },
+
+            // MISSILES
+            { id: 16, type: 'missile', name: 'FGM-148 Javelin', price: '175,000 $', img: 'https://upload.wikimedia.org/wikipedia/commons/7/76/Javelin_with_checkout_equipment.jpg', stats: {dmg: 100, range: 90} },
+            { id: 17, type: 'missile', name: 'RPG-7 Warhead', price: '500 $', img: 'https://static.wikia.nocookie.net/battlefield/images/9/97/Rpg7a6dm.jpg/revision/latest/thumbnail/width/360/height/360?cb=20100429025428', stats: {dmg: 85, range: 40} },
+            { id: 18, type: 'missile', name: 'Stinger Missile', price: '38,000 $', img: 'https://upload.wikimedia.org/wikipedia/commons/4/4b/Voorzijde_van_een_Stinger_lanceerbuis_met_richt-afvuurapparatuur_%282086-065-004%29.jpg', stats: {dmg: 90, range: 85} },
+            { id: 19, type: 'missile', name: 'Hellfire AGM-114', price: '115,000 $', img: 'https://upload.wikimedia.org/wikipedia/commons/2/25/AGM-114_Hellfire_hung_on_a_Predator_drone.JPEG', stats: {dmg: 100, range: 95} },
+            { id: 20, type: 'missile', name: 'Tomahawk Cruise', price: '1,500,000 $', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/e/e8/Tomahawk_Block_IV_cruise_missile_-crop.jpg/1200px-Tomahawk_Block_IV_cruise_missile_-crop.jpg', stats: {dmg: 100, range: 100} },
+
+            // DRONES
+            { id: 21, type: 'drone', name: 'MQ-9 Reaper', price: '32M $', img: 'https://p.turbosquid.com/ts-thumb/mU/wfpyZ3/tB/mq9_37/jpg/1704502881/1920x1080/fit_q87/223c8e9895e243780461a7050a4cb847ffa6dcc5/mq9_37.jpg', stats: {dmg: 95, range: 100} },
+            { id: 22, type: 'drone', name: 'Black Hornet', price: '195,000 $', img: 'https://s.rfi.fr/media/display/87f83cc8-1326-11ea-86c4-005056bf7c53/w:1280/p:1x1/black-hornet-prs_0.jpg', stats: {dmg: 10, range: 80} },
+            { id: 23, type: 'drone', name: 'DJI Tactical', price: '3,500 $', img: 'https://images.unsplash.com/photo-1506947411487-a56738267384?auto=format&fit=crop&w=600&q=80', stats: {dmg: 20, range: 60} },
+            { id: 24, type: 'drone', name: 'Switchblade 300', price: '6,000 $', img: 'https://images.air-cosmos.com/media/40ec079785dceb034a8226c0e7bcc94970f54ddec2da87cb9cd22720012d4d9b', stats: {dmg: 80, range: 70} },
+            { id: 25, type: 'drone', name: 'Global Hawk', price: '130M $', img: 'https://www.nasa.gov/wp-content/uploads/2015/06/ed13-0399-17.jpg', stats: {dmg: 0, range: 100} },
+
+            // TANKS
+            { id: 26, type: 'tank', name: 'M1A2 Abrams', price: '8.5M $', img: 'https://www.lenouvelliste.ma/wp-content/uploads/2024/08/M1A2-Abrams.jpg', stats: {dmg: 98, range: 80} },
+            { id: 27, type: 'tank', name: 'T-90MS', price: '4.5M $', img: 'https://upload.wikimedia.org/wikipedia/commons/d/d9/T-90M.jpg', stats: {dmg: 95, range: 75} },
+            { id: 28, type: 'tank', name: 'Leopard 2A7', price: '9M $', img: 'https://upload.wikimedia.org/wikipedia/commons/thumb/2/24/Leopard_2_A5_der_Bundeswehr.jpg/330px-Leopard_2_A5_der_Bundeswehr.jpg', stats: {dmg: 97, range: 82} },
+            { id: 29, type: 'tank', name: 'Merkava Mk IV', price: '5M $', img: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Tank_%2849944481906%29_%28cropped%29.jpg', stats: {dmg: 96, range: 78} },
+            { id: 30, type: 'tank', name: 'Challenger 2', price: '6M $', img: 'https://upload.wikimedia.org/wikipedia/commons/3/30/Challenger_2_Main_Battle_Tank_patrolling_outside_Basra%2C_Iraq_MOD_45148325.jpg', stats: {dmg: 99, range: 79} },
         ];
 
-        // Menu Data (Enriched with more items)
-        const menuItems = [
-            // Entrées
-            { category: "entree", name: "Carpaccio de Saint-Jacques", price: "28€", desc: "Agrumes, huile de vanille et fleur de sel.", img: "https://images.unsplash.com/photo-1565557623262-b51c2513a641?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "entree", name: "Foie Gras Poêlé", price: "34€", desc: "Chutney de figues, pain d'épices maison.", img: "https://images.unsplash.com/photo-1621255530752-d17b5b5c2a11?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "entree", name: "Ravioles de Langoustine", price: "32€", desc: "Bouillon thaï, citronnelle et gingembre.", img: "https://images.unsplash.com/photo-1551183053-bf91a1d81141?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "entree", name: "Tartare de Thon Rouge", price: "29€", desc: "Avocat, mangue, sésame grillé.", img: "https://images.unsplash.com/photo-1543339308-43e59d6b73a6?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            
-            // Plats
-            { category: "plat", name: "Filet de Bœuf Rossini", price: "45€", desc: "Truffes noires, purée truffée.", img: "https://images.unsplash.com/photo-1600891964092-4316c288032e?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "plat", name: "Bar de Ligne Rôti", price: "38€", desc: "Légumes oubliés, sauce vierge.", img: "https://images.unsplash.com/photo-1594041680534-e8c8cdebd659?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "plat", name: "Carré d'Agneau", price: "42€", desc: "Croûte d'herbes, jus corsé au thym.", img: "https://images.unsplash.com/photo-1532597327428-3885d8e75200?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "plat", name: "Risotto aux Cèpes", price: "34€", desc: "Parmesan 36 mois, huile de truffe blanche.", img: "https://images.unsplash.com/photo-1476718406336-bb5a9690ee2b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            
-            // Desserts
-            { category: "dessert", name: "Le Citron", price: "18€", desc: "En trompe-l'œil, insert menthe fraîche.", img: "https://images.unsplash.com/photo-1551024601-bec78aea704b?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "dessert", name: "Pavlova Fruits Rouges", price: "16€", desc: "Meringue légère, crème onctueuse.", img: "https://images.unsplash.com/photo-1488477181946-6428a0291777?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "dessert", name: "Millefeuille Vanille", price: "19€", desc: "Vanille de Madagascar, caramel beurre salé.", img: "https://images.unsplash.com/photo-1587314168485-3236d6710814?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" },
-            { category: "dessert", name: "Soufflé Chocolat Noir", price: "20€", desc: "Guanaja 70%, glace pistache.", img: "https://images.unsplash.com/photo-1558961363-fa8fdf82db35?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=80" }
-        ];
+        // --- FONCTIONS DU SITE ---
 
-        // --- INIT ---
-        window.onload = function() {
-            // Remove Loader
-            setTimeout(() => {
-                document.getElementById('loader').style.opacity = '0';
-                setTimeout(() => document.getElementById('loader').remove(), 800);
-            }, 1000);
+        function renderItems(filter) {
+            const container = document.getElementById('product-grid');
+            container.innerHTML = ''; // Nettoyer la grille
 
-            initThreeJS();
-            init3DSlider();
-            renderMenu('all');
-            initMenuFilters();
-        };
+            const filteredProducts = filter === 'all' 
+                ? products 
+                : products.filter(p => p.type === filter);
 
-        // --- THREE.JS BACKGROUND ---
-        function initThreeJS() {
-            const canvas = document.getElementById('bg-canvas');
-            const scene = new THREE.Scene();
-            const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-            const renderer = new THREE.WebGLRenderer({ canvas: canvas, alpha: true });
-            
-            renderer.setSize(window.innerWidth, window.innerHeight);
-            renderer.setPixelRatio(window.devicePixelRatio);
-
-            // Particles
-            const particlesGeometry = new THREE.BufferGeometry();
-            const particlesCount = 700;
-            const posArray = new Float32Array(particlesCount * 3);
-
-            for(let i = 0; i < particlesCount * 3; i++) {
-                posArray[i] = (Math.random() - 0.5) * 15; // Spread
-            }
-
-            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(posArray, 3));
-
-            // Material - Gold dots
-            const material = new THREE.PointsMaterial({
-                size: 0.02,
-                color: 0xD4AF37,
-                transparent: true,
-                opacity: 0.8,
-            });
-
-            const particlesMesh = new THREE.Points(particlesGeometry, material);
-            scene.add(particlesMesh);
-
-            camera.position.z = 3;
-
-            // Mouse Interaction
-            let mouseX = 0;
-            let mouseY = 0;
-
-            document.addEventListener('mousemove', (event) => {
-                mouseX = event.clientX / window.innerWidth - 0.5;
-                mouseY = event.clientY / window.innerHeight - 0.5;
-            });
-
-            // Animation Loop
-            const clock = new THREE.Clock();
-
-            function animate() {
-                requestAnimationFrame(animate);
-                const elapsedTime = clock.getElapsedTime();
-
-                // Rotate entire system slowly
-                particlesMesh.rotation.y = elapsedTime * 0.05;
-                particlesMesh.rotation.x = elapsedTime * 0.02;
-
-                // Mouse interaction parallax
-                particlesMesh.rotation.y += mouseX * 0.05;
-                particlesMesh.rotation.x += mouseY * 0.05;
-
-                renderer.render(scene, camera);
-            }
-            animate();
-
-            // Resize
-            window.addEventListener('resize', () => {
-                camera.aspect = window.innerWidth / window.innerHeight;
-                camera.updateProjectionMatrix();
-                renderer.setSize(window.innerWidth, window.innerHeight);
-            });
-        }
-
-        // --- 3D SLIDER LOGIC ---
-        let currentSlide = 0;
-        
-        function init3DSlider() {
-            const container = document.getElementById('slider-3d');
-            container.innerHTML = '';
-            
-            specialities.forEach((item, index) => {
-                const card = document.createElement('div');
-                card.className = 'slider-card glass-panel';
-                card.innerHTML = `
-                    <img src="${item.img}" alt="${item.title}">
-                    <div class="slider-content">
-                        <h4 class="text-gold text-xl font-serif">${item.title}</h4>
-                        <p class="text-gray-300 text-sm mt-1">${item.desc}</p>
-                    </div>
-                `;
-                card.onclick = () => { currentSlide = index; updateSlider(); };
-                container.appendChild(card);
-            });
-            updateSlider();
-        }
-
-        function updateSlider() {
-            const cards = document.querySelectorAll('.slider-card');
-            const center = Math.floor(cards.length / 2); // Not used directly, we center around currentSlide
-            
-            cards.forEach((card, index) => {
-                const offset = index - currentSlide;
-                
-                card.className = 'slider-card glass-panel'; // reset
-                
-                if (offset === 0) {
-                    // Center card
-                    card.style.transform = `translateX(0) scale(1.2) zIndex(10)`;
-                    card.style.zIndex = 10;
-                    card.style.opacity = 1;
-                    card.classList.add('active');
-                } else if (Math.abs(offset) <= 2) {
-                    // Neighbors
-                    const translate = offset * 220; // Distance between cards
-                    const scale = 1 - Math.abs(offset) * 0.2;
-                    const rotateY = offset * -15; // Rotate inwards
-                    
-                    card.style.transform = `translateX(${translate}px) scale(${scale}) perspective(1000px) rotateY(${rotateY}deg)`;
-                    card.style.zIndex = 10 - Math.abs(offset);
-                    card.style.opacity = 0.6;
-                } else {
-                    // Far away cards
-                    card.style.opacity = 0;
-                    card.style.zIndex = 0;
-                }
-            });
-        }
-
-        function moveSlide(direction) {
-            currentSlide += direction;
-            if (currentSlide < 0) currentSlide = specialities.length - 1;
-            if (currentSlide >= specialities.length) currentSlide = 0;
-            updateSlider();
-        }
-
-        // --- MENU LOGIC ---
-        function renderMenu(filter) {
-            const grid = document.getElementById('menu-grid');
-            grid.innerHTML = '';
-            
-            const filteredItems = filter === 'all' 
-                ? menuItems 
-                : menuItems.filter(item => item.category === filter);
-
-            filteredItems.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'menu-item glass-panel rounded-xl overflow-hidden border border-white/5 relative group';
-                div.style.animation = `float 0.5s ease-out ${index * 0.1}s backwards`;
-                
-                div.innerHTML = `
-                    <div class="h-48 overflow-hidden relative">
-                        <img src="${item.img}" class="w-full h-full object-cover transition duration-700 group-hover:scale-110" alt="${item.name}">
-                        <div class="absolute inset-0 bg-black/40 group-hover:bg-transparent transition-colors"></div>
-                    </div>
-                    <div class="p-6">
-                        <div class="flex justify-between items-baseline mb-2">
-                            <h4 class="text-xl font-serif text-white group-hover:text-gold transition-colors">${item.name}</h4>
-                            <span class="text-gold font-bold text-lg">${item.price}</span>
+            filteredProducts.forEach(product => {
+                // Création du HTML pour chaque carte
+                const card = `
+                    <div class="card">
+                        <div class="card-header">
+                            <span>ID: #${product.id.toString().padStart(4, '0')}</span>
+                            <span>MIL-SPEC</span>
                         </div>
-                        <p class="text-gray-400 text-sm font-light">${item.desc}</p>
-                        <button class="mt-4 w-full py-2 border border-white/10 text-xs uppercase tracking-widest text-gray-400 hover:text-white hover:border-gold hover:bg-gold/10 transition-all">Ajouter à la commande</button>
+                        <div class="img-container">
+                            <img src="${product.img}" alt="${product.name}">
+                        </div>
+                        <div class="card-body">
+                            <span class="item-category">CLASSE: ${product.type}</span>
+                            <h3 class="item-name">${product.name}</h3>
+                            
+                            <div class="stats">
+                                <div class="stat-row">
+                                    <span class="stat-label">DMG</span>
+                                    <div class="bar-bg"><div class="bar-fill" style="width: ${product.stats.dmg}%"></div></div>
+                                </div>
+                                <div class="stat-row">
+                                    <span class="stat-label">RNG</span>
+                                    <div class="bar-bg"><div class="bar-fill" style="width: ${product.stats.range}%"></div></div>
+                                </div>
+                            </div>
+
+                            <div style="overflow:hidden;">
+                                <span class="price-tag">${product.price}</span>
+                            </div>
+                            <button class="btn-action">AJOUTER AU PAD</button>
+                        </div>
                     </div>
                 `;
-                grid.appendChild(div);
+                container.innerHTML += card;
             });
         }
 
-        function initMenuFilters() {
-            const buttons = document.querySelectorAll('.menu-filter');
-            buttons.forEach(btn => {
-                btn.addEventListener('click', () => {
-                    // Update active style
-                    buttons.forEach(b => {
-                        b.classList.remove('bg-gold', 'text-black', 'border-gold');
-                        b.classList.add('text-gray-300', 'border-white/10');
-                    });
-                    btn.classList.remove('text-gray-300', 'border-white/10');
-                    btn.classList.add('bg-gold', 'text-black', 'border-gold');
-                    
-                    // Filter
-                    renderMenu(btn.dataset.filter);
-                });
-            });
+        function filterItems(category) {
+            // Gestion des boutons actifs
+            document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            // Relancer le rendu
+            renderItems(category);
         }
 
-        // --- UTILS ---
-        function showNotification(msg) {
-            const notif = document.getElementById('notification');
-            notif.innerText = msg;
-            notif.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                notif.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }
-
-        // Navbar Scroll Effect
-        window.addEventListener('scroll', () => {
-            const nav = document.getElementById('navbar');
-            if (window.scrollY > 50) {
-                nav.classList.add('bg-black/90');
-                nav.classList.remove('border-b-0');
-                nav.classList.add('border-b', 'border-white/10');
-            } else {
-                nav.classList.remove('bg-black/90');
-                nav.classList.add('border-b-0');
-                nav.classList.remove('border-b', 'border-white/10');
-            }
-        });
+        // Initialisation
+        window.onload = () => renderItems('all');
 
     </script>
 </body>

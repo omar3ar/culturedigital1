@@ -1,0 +1,810 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotoXperience | Vente de Motos Premium</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        /* --- VARIABLES & RESET --- */
+        :root {
+            --primary: #e74c3c; /* Rouge sportif */
+            --dark: #121212;
+            --dark-gray: #1e1e1e;
+            --light: #f5f5f5;
+            --gray: #b0b0b0;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            background-color: var(--dark);
+            color: var(--light);
+            overflow-x: hidden;
+        }
+
+        /* --- HEADER & HERO SECTION --- */
+        header {
+            padding: 20px 50px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(18, 18, 18, 0.9);
+            position: fixed;
+            width: 100%;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo { font-size: 1.5rem; font-weight: 800; color: var(--light); text-transform: uppercase; }
+        .logo span { color: var(--primary); }
+
+        .hero {
+            height: 80vh;
+            background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.8)), url('https://images.unsplash.com/photo-1558981403-c5f9899a28bc?ixlib=rb-1.2.1&auto=format&fit=crop&w=1950&q=80');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding-top: 60px;
+        }
+
+        .hero h1 {
+            font-size: 4rem;
+            text-transform: uppercase;
+            font-weight: 800;
+            margin-bottom: 20px;
+            letter-spacing: 2px;
+        }
+
+        .hero p { font-size: 1.2rem; color: var(--gray); max-width: 600px; margin-bottom: 30px; }
+
+        .btn-main {
+            padding: 15px 40px;
+            background: var(--primary);
+            color: white;
+            text-decoration: none;
+            font-weight: 700;
+            text-transform: uppercase;
+            border-radius: 5px;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+        }
+        .btn-main:hover { background: #c0392b; transform: scale(1.05); }
+
+        /* --- CATEGORIES FILTER --- */
+        .filters {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            padding: 50px 20px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 25px;
+            background: transparent;
+            border: 2px solid var(--gray);
+            color: var(--gray);
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: 0.3s;
+        }
+
+        .filter-btn.active, .filter-btn:hover {
+            border-color: var(--primary);
+            background: var(--primary);
+            color: white;
+        }
+
+        /* --- CATALOGUE GRID --- */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px 100px 20px;
+        }
+
+        .bike-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .bike-card {
+            background: var(--dark-gray);
+            border-radius: 15px;
+            overflow: hidden;
+            transition: 0.4s;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+        .bike-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(231, 76, 60, 0.2); }
+
+        .card-img {
+            height: 200px;
+            width: 100%;
+            object-fit: cover;
+        }
+
+        .card-content { padding: 25px; }
+
+        .badge {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.7);
+            color: var(--primary);
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .bike-name { font-size: 1.5rem; margin-bottom: 5px; font-weight: 700; }
+        .bike-price { font-size: 1.2rem; color: var(--primary); margin-bottom: 20px; font-weight: 600; display: block; }
+
+        /* Specs Grid */
+        .specs {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .spec-item {
+            font-size: 0.85rem;
+            color: var(--gray);
+            display: flex;
+            align-items: center;
+        }
+        .spec-item span { color: white; font-weight: 600; margin-left: 5px; }
+
+        .btn-buy {
+            width: 100%;
+            padding: 12px;
+            background: transparent;
+            border: 1px solid var(--primary);
+            color: var(--primary);
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .btn-buy:hover { background: var(--primary); color: white; }
+
+        /* Animation d'apparition */
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 { font-size: 2.5rem; }
+            header { padding: 15px 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Moto<span>X</span>perience</div>
+        <nav>
+            <button class="btn-main">Contact</button>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>Dominez la Route</h1>
+        <p>Découvrez notre sélection exclusive de motos sportives, roadsters et customs. La performance à l'état pur.</p>
+        <a href="#catalogue" class="btn-main">Voir le catalogue</a>
+    </section>
+
+    <div id="catalogue" class="container">
+        <div class="filters">
+            <button class="filter-btn active" onclick="filterBikes('all')">Tout</button>
+            <button class="filter-btn" onclick="filterBikes('sport')">Sportives</button>
+            <button class="filter-btn" onclick="filterBikes('roadster')">Roadsters</button>
+            <button class="filter-btn" onclick="filterBikes('custom')">Custom</button>
+        </div>
+
+        <div class="bike-grid">
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://images.unsplash.com/photo-1568772585407-9361f9bf3a87?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Moto Sport" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Thunder ZX-10</h3>
+                    <span class="bike-price">18 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>299 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>998 cc</span></div>
+                        <div class="spec-item">🐎 <span>200 ch</span></div>
+                        <div class="spec-item">⚖️ <span>207 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1591637333184-19aa84b3e01f?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Moto Roadster" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Street Fighter V4</h3>
+                    <span class="bike-price">14 200 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>240 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>890 cc</span></div>
+                        <div class="spec-item">🐎 <span>120 ch</span></div>
+                        <div class="spec-item">⚖️ <span>189 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://cdpcdn.dx1app.com/products-private/prod/3f9b06f9-f26a-4d57-bebe-4d820ea90a67/7c987d8a-eb3b-4410-a38a-b0fb010bc347/00000000-0000-0000-0000-000000000000/9d373992-42d8-412a-bd2b-acae005707fc/3784f82c-f332-4f40-b56a-b323016b51f7/6000000001.jpg" alt="Moto Custom" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Iron Cruiser 883</h3>
+                    <span class="bike-price">11 900 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>180 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1200 cc</span></div>
+                        <div class="spec-item">🐎 <span>85 ch</span></div>
+                        <div class="spec-item">⚖️ <span>250 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://images.unsplash.com/photo-1609630875171-b1321377ee65?ixlib=rb-1.2.1&auto=format&fit=crop&w=800&q=80" alt="Moto Sport 2" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Blade Runner RR</h3>
+                    <span class="bike-price">22 000 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>310 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1100 cc</span></div>
+                        <div class="spec-item">🐎 <span>215 ch</span></div>
+                        <div class="spec-item">⚖️ <span>195 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+             <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://press.ktm.com/Content/790047/9bf26b1c-7173-49e0-b861-285fcfdc40b5/1200/2400/.jpg" alt="Moto Roadster 2" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Dark Duke 700</h3>
+                    <span class="bike-price">9 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>200 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>690 cc</span></div>
+                        <div class="spec-item">🐎 <span>75 ch</span></div>
+                        <div class="spec-item">⚖️ <span>160 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://cdn.powergo.ca/media/catalog/2023/48/c0e519198fce4da68eef27d728d2c179_1024x768_webp/yamaha-yzf-r1-noir-performance-2024-0.webp" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Yamaha YZF-R1</h3>
+                    <span class="bike-price">19 999 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>298 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>998 cc</span></div>
+                        <div class="spec-item">🐎 <span>200 ch</span></div>
+                        <div class="spec-item">⚖️ <span>201 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://www.moto-net.com/sites/default/files/images/photos-articles/2025/nouveautes/bmw/m1000rr-2025-bmw-profil.jpg" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">BMW S1000 RR</h3>
+                    <span class="bike-price">21 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>305 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>999 cc</span></div>
+                        <div class="spec-item">🐎 <span>207 ch</span></div>
+                        <div class="spec-item">⚖️ <span>197 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Ducati Panigale V4</h3>
+                    <span class="bike-price">25 000 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>315 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1103 cc</span></div>
+                        <div class="spec-item">🐎 <span>214 ch</span></div>
+                        <div class="spec-item">⚖️ <span>198 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://images.unsplash.com/photo-1558981420-87aa9dad1c89?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Kawasaki Ninja H2</h3>
+                    <span class="bike-price">32 000 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>330 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>998 cc</span></div>
+                        <div class="spec-item">🐎 <span>231 ch</span></div>
+                        <div class="spec-item">⚖️ <span>238 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://moto.honda.fr/content/dam/central/motorcycles/supersports/cbr1000rr-rr-fireblade-2024/overview/usp-carousel/honda-cbr1000rr-r-usp-carousel-1728x972-desktop3.jpg/_jcr_content/renditions/c2_r.jpg" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Honda CBR1000RR-R</h3>
+                    <span class="bike-price">23 000 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>299 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1000 cc</span></div>
+                        <div class="spec-item">🐎 <span>217 ch</span></div>
+                        <div class="spec-item">⚖️ <span>201 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://images.unsplash.com/photo-1515777315835-281b94c9589f?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Suzuki GSX-R 1000</h3>
+                    <span class="bike-price">17 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>295 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>999 cc</span></div>
+                        <div class="spec-item">🐎 <span>202 ch</span></div>
+                        <div class="spec-item">⚖️ <span>203 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://images.unsplash.com/photo-1599819811279-d5ad9cccf838?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Aprilia RSV4</h3>
+                    <span class="bike-price">20 900 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>305 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1099 cc</span></div>
+                        <div class="spec-item">🐎 <span>217 ch</span></div>
+                        <div class="spec-item">⚖️ <span>199 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+             <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://images5.1000ps.net/images_bikekat/2009/30-MV_AGUSTA/2864-F4_100_CC/gr.jpg?format=webp&quality=80&width=1200&height=790&bgcolor=rgba_39_42_44_0&mode=pad" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">MV Agusta F4</h3>
+                    <span class="bike-price">28 000 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>290 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>998 cc</span></div>
+                        <div class="spec-item">🐎 <span>195 ch</span></div>
+                        <div class="spec-item">⚖️ <span>191 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT-5WN_AE2psg7UgyMffxe5derCnP3fEBoQmg&s" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">KTM RC 8C</h3>
+                    <span class="bike-price">35 000 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>280 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>889 cc</span></div>
+                        <div class="spec-item">🐎 <span>128 ch</span></div>
+                        <div class="spec-item">⚖️ <span>140 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="sport">
+                <span class="badge">Sportive</span>
+                <img src="https://mcn-images.bauersecure.com/wp-images/4907/1440x960/triumph-daytona-765-09.jpg?mode=max&quality=90&scale=down" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Triumph Daytona 765</h3>
+                    <span class="bike-price">16 000 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>260 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>765 cc</span></div>
+                        <div class="spec-item">🐎 <span>130 ch</span></div>
+                        <div class="spec-item">⚖️ <span>166 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1591637333184-19aa84b3e01f?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Yamaha MT-07</h3>
+                    <span class="bike-price">7 999 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>210 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>689 cc</span></div>
+                        <div class="spec-item">🐎 <span>73.4 ch</span></div>
+                        <div class="spec-item">⚖️ <span>184 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+             <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.caradisiac.com/logos/4/2/8/9/284289/S6-les-rumeurs-d-une-nouvelle-kawasaki-z900-et-d-une-z1100-se-renforcent-210637.jpg" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Kawasaki Z900</h3>
+                    <span class="bike-price">9 800 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>240 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>948 cc</span></div>
+                        <div class="spec-item">🐎 <span>125 ch</span></div>
+                        <div class="spec-item">⚖️ <span>212 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1588698298715-288219c62963?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Triumph Street Triple</h3>
+                    <span class="bike-price">10 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>230 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>765 cc</span></div>
+                        <div class="spec-item">🐎 <span>123 ch</span></div>
+                        <div class="spec-item">⚖️ <span>166 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1574577457599-27806f0e9b25?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Ducati Monster</h3>
+                    <span class="bike-price">11 900 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>225 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>937 cc</span></div>
+                        <div class="spec-item">🐎 <span>111 ch</span></div>
+                        <div class="spec-item">⚖️ <span>166 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1615172282427-9a5752d6486d?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Honda CB1000R</h3>
+                    <span class="bike-price">14 200 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>230 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>998 cc</span></div>
+                        <div class="spec-item">🐎 <span>145 ch</span></div>
+                        <div class="spec-item">⚖️ <span>212 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1616423642777-66a9386c9d57?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">KTM 1290 Super Duke</h3>
+                    <span class="bike-price">19 000 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>290 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1301 cc</span></div>
+                        <div class="spec-item">🐎 <span>180 ch</span></div>
+                        <div class="spec-item">⚖️ <span>189 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1605732440685-d0654d81aa30?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">BMW R 1250 R</h3>
+                    <span class="bike-price">15 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>230 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1254 cc</span></div>
+                        <div class="spec-item">🐎 <span>136 ch</span></div>
+                        <div class="spec-item">⚖️ <span>239 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1627993416246-3b762512f451?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Suzuki SV650</h3>
+                    <span class="bike-price">6 900 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>205 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>645 cc</span></div>
+                        <div class="spec-item">🐎 <span>73 ch</span></div>
+                        <div class="spec-item">⚖️ <span>200 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1594894361099-0f04dbb24479?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Husqvarna Vitpilen 701</h3>
+                    <span class="bike-price">10 200 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>200 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>692 cc</span></div>
+                        <div class="spec-item">🐎 <span>75 ch</span></div>
+                        <div class="spec-item">⚖️ <span>158 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="roadster">
+                <span class="badge">Roadster</span>
+                <img src="https://images.unsplash.com/photo-1600705722908-bab1e61c0b4d?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">MV Agusta Brutale</h3>
+                    <span class="bike-price">16 900 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>245 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>800 cc</span></div>
+                        <div class="spec-item">🐎 <span>140 ch</span></div>
+                        <div class="spec-item">⚖️ <span>175 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1558981806-ec527fa84f3d?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Indian Scout Bobber</h3>
+                    <span class="bike-price">14 700 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>190 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1133 cc</span></div>
+                        <div class="spec-item">🐎 <span>94 ch</span></div>
+                        <div class="spec-item">⚖️ <span>250 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1606907635294-84d412678680?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Harley Fat Bob</h3>
+                    <span class="bike-price">20 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>195 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1868 cc</span></div>
+                        <div class="spec-item">🐎 <span>93 ch</span></div>
+                        <div class="spec-item">⚖️ <span>306 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1614023240212-32b53c713b53?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Triumph Bonneville Bobber</h3>
+                    <span class="bike-price">15 200 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>185 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1200 cc</span></div>
+                        <div class="spec-item">🐎 <span>78 ch</span></div>
+                        <div class="spec-item">⚖️ <span>251 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1596516641528-662235c05c08?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Honda Rebel 1100</h3>
+                    <span class="bike-price">11 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>170 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1084 cc</span></div>
+                        <div class="spec-item">🐎 <span>87 ch</span></div>
+                        <div class="spec-item">⚖️ <span>223 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1612853205728-60032cb410a8?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">BMW R18</h3>
+                    <span class="bike-price">22 900 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>180 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1802 cc</span></div>
+                        <div class="spec-item">🐎 <span>91 ch</span></div>
+                        <div class="spec-item">⚖️ <span>345 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1605732559286-63d7e5d8995a?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Moto Guzzi V9 Bobber</h3>
+                    <span class="bike-price">10 800 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>175 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>853 cc</span></div>
+                        <div class="spec-item">🐎 <span>65 ch</span></div>
+                        <div class="spec-item">⚖️ <span>210 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1598555898399-528bc4553331?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Royal Enfield Meteor 350</h3>
+                    <span class="bike-price">4 300 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>120 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>349 cc</span></div>
+                        <div class="spec-item">🐎 <span>20 ch</span></div>
+                        <div class="spec-item">⚖️ <span>191 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1517154596051-c6353344ae0f?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Yamaha Bolt R</h3>
+                    <span class="bike-price">9 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>170 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>942 cc</span></div>
+                        <div class="spec-item">🐎 <span>54 ch</span></div>
+                        <div class="spec-item">⚖️ <span>252 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1571612480838-8957816d2b38?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Kawasaki Vulcan S</h3>
+                    <span class="bike-price">8 300 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>180 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>649 cc</span></div>
+                        <div class="spec-item">🐎 <span>61 ch</span></div>
+                        <div class="spec-item">⚖️ <span>229 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+            <div class="bike-card" data-category="custom">
+                <span class="badge">Custom</span>
+                <img src="https://images.unsplash.com/photo-1582299824682-132d001c237a?auto=format&fit=crop&w=800&q=80" alt="Moto" class="card-img">
+                <div class="card-content">
+                    <h3 class="bike-name">Harley Sportster S</h3>
+                    <span class="bike-price">17 500 €</span>
+                    <div class="specs">
+                        <div class="spec-item">🚀 <span>220 km/h</span></div>
+                        <div class="spec-item">⚙️ <span>1252 cc</span></div>
+                        <div class="spec-item">🐎 <span>121 ch</span></div>
+                        <div class="spec-item">⚖️ <span>228 kg</span></div>
+                    </div>
+                    <button class="btn-buy">Détails</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        function filterBikes(category) {
+            // 1. Gérer les boutons (active class)
+            let buttons = document.querySelectorAll('.filter-btn');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            // On ajoute la classe active au bouton cliqué (via event.target n'est pas utilisé ici pour simplifier, on suppose l'UI update)
+            // Pour faire simple, on réinitialise visuellement:
+            event.target.classList.add('active');
+
+            // 2. Gérer l'affichage des cartes
+            let cards = document.querySelectorAll('.bike-card');
+            
+            cards.forEach(card => {
+                // Animation reset
+                card.style.display = 'none';
+                card.classList.remove('fade-in');
+
+                if (category === 'all' || card.getAttribute('data-category') === category) {
+                    card.style.display = 'block';
+                    // Petite astuce pour relancer l'animation CSS
+                    setTimeout(() => card.classList.add('fade-in'), 10);
+                }
+            });
+        }
+    </script>
+</body>
+</html>

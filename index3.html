@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NEON ARCADE | Retro Gaming</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+    <style>
+        /* --- ESTHÉTIQUE RETRO --- */
+        :root {
+            --neon-pink: #ff00ff;
+            --neon-blue: #00ffff;
+            --dark-bg: #121212;
+            --screen-bg: #000;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            background-color: var(--dark-bg);
+            font-family: 'Press Start 2P', cursive;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            /* Grille de fond style années 80 */
+            background-image: 
+                linear-gradient(rgba(18, 18, 18, 0.9), rgba(18, 18, 18, 0.9)),
+                linear-gradient(0deg, transparent 24%, rgba(255, 0, 255, .3) 25%, rgba(255, 0, 255, .3) 26%, transparent 27%, transparent 74%, rgba(255, 0, 255, .3) 75%, rgba(255, 0, 255, .3) 76%, transparent 77%, transparent),
+                linear-gradient(90deg, transparent 24%, rgba(0, 255, 255, .3) 25%, rgba(0, 255, 255, .3) 26%, transparent 27%, transparent 74%, rgba(0, 255, 255, .3) 75%, rgba(0, 255, 255, .3) 76%, transparent 77%, transparent);
+            background-size: 50px 50px;
+        }
+
+        h1 {
+            color: var(--neon-pink);
+            text-shadow: 4px 4px 0px var(--neon-blue);
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            animation: flicker 1.5s infinite alternate;
+        }
+
+        /* --- LA BORNE D'ARCADE --- */
+        .arcade-cabinet {
+            background: #222;
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 
+                0 0 20px var(--neon-pink),
+                inset 0 0 50px rgba(0,0,0,0.8);
+            border: 4px solid #333;
+            max-width: 600px;
+            width: 95%;
+        }
+
+        /* --- L'ÉCRAN (EFFET CRT) --- */
+        .screen-container {
+            position: relative;
+            background: var(--screen-bg);
+            border: 4px solid #555;
+            border-radius: 10px;
+            overflow: hidden;
+            width: 100%;
+            height: 400px;
+            box-shadow: inset 0 0 20px rgba(0,0,0,1);
+        }
+
+        /* Lignes de balayage (Scanlines) */
+        .screen-container::after {
+            content: " ";
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            z-index: 2;
+            background-size: 100% 2px, 3px 100%;
+            pointer-events: none;
+        }
+
+        canvas {
+            background: black;
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* --- MENU DU JEU --- */
+        #game-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0,0,0,0.8);
+            z-index: 10;
+        }
+
+        .menu-btn {
+            background: var(--neon-blue);
+            border: none;
+            padding: 15px 30px;
+            font-family: 'Press Start 2P';
+            font-size: 1rem;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 4px 4px 0px var(--neon-pink);
+            transition: 0.2s;
+        }
+        .menu-btn:active {
+            transform: translate(4px, 4px);
+            box-shadow: none;
+        }
+
+        /* --- CONTROLES (BAS DE LA BORNE) --- */
+        .controls {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .d-pad {
+            display: grid;
+            grid-template-columns: 40px 40px 40px;
+            grid-template-rows: 40px 40px;
+            gap: 5px;
+        }
+        .key {
+            width: 40px;
+            height: 40px;
+            background: #444;
+            border-radius: 5px;
+            border-bottom: 4px solid #222;
+            cursor: pointer;
+        }
+        .key:active { border-bottom: none; transform: translateY(4px); }
+        .key.up { grid-column: 2; grid-row: 1; }
+        .key.left { grid-column: 1; grid-row: 2; }
+        .key.down { grid-column: 2; grid-row: 2; }
+        .key.right { grid-column: 3; grid-row: 2; }
+
+        .action-btns {
+            display: flex;
+            gap: 15px;
+        }
+        .a-btn {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: #ff3333;
+            border: 4px solid #aa0000;
+            box-shadow: 0 0 10px #ff3333;
+            cursor: pointer;
+        }
+        .a-btn:active { transform: scale(0.95); }
+
+        .score-board {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 0.8rem;
+            color: #aaa;
+        }
+        #score { color: var(--neon-blue); }
+
+        /* Animation titre */
+        @keyframes flicker {
+            0% { opacity: 1; }
+            5% { opacity: 0.8; }
+            10% { opacity: 1; }
+            15% { opacity: 0.3; }
+            20% { opacity: 1; }
+            100% { opacity: 1; }
+        }
+
+        /* Responsive */
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5rem; }
+            .arcade-cabinet { padding: 10px; }
+            .screen-container { height: 300px; }
+        }
+
+    </style>
+</head>
+<body>
+
+    <h1>Neon Arcade</h1>
+
+    <div class="arcade-cabinet">
+        <div class="score-board">SCORE: <span id="score">0</span></div>
+        
+        <div class="screen-container">
+            <canvas id="gameCanvas" width="400" height="400"></canvas>
+            
+            <div id="game-menu">
+                <h2 style="color:yellow; margin-bottom:10px;">SNAKE</h2>
+                <p style="font-size:0.7rem; color:#ccc; margin-bottom:20px;">Utilise les flèches</p>
+                <button class="menu-btn" onclick="startGame()">JOUER</button>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="d-pad">
+                <div class="key up" onclick="changeDirection('UP')"></div>
+                <div class="key left" onclick="changeDirection('LEFT')"></div>
+                <div class="key down" onclick="changeDirection('DOWN')"></div>
+                <div class="key right" onclick="changeDirection('RIGHT')"></div>
+            </div>
+            
+            <div class="action-btns">
+                <div class="a-btn" onclick="startGame()"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- CONFIGURATION DU JEU SNAKE ---
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score');
+        const menuElement = document.getElementById('game-menu');
+
+        const box = 20; // Taille d'une case (pixel du serpent)
+        let snake = [];
+        let food = {};
+        let score = 0;
+        let d; // Direction
+        let game; // La boucle du jeu
+
+        // Initialisation
+        function initGame() {
+            snake = [];
+            snake[0] = { x: 9 * box, y: 10 * box }; // Position départ
+            score = 0;
+            d = null; // Pas de mouvement au début
+            scoreElement.innerText = score;
+            createFood();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            draw();
+        }
+
+        function createFood() {
+            food = {
+                x: Math.floor(Math.random() * (canvas.width / box)) * box,
+                y: Math.floor(Math.random() * (canvas.height / box)) * box
+            };
+        }
+
+        // Contrôles Clavier
+        document.addEventListener("keydown", direction);
+
+        function direction(event) {
+            let key = event.keyCode;
+            if (key == 37 && d != "RIGHT") d = "LEFT";
+            else if (key == 38 && d != "DOWN") d = "UP";
+            else if (key == 39 && d != "LEFT") d = "RIGHT";
+            else if (key == 40 && d != "UP") d = "DOWN";
+        }
+
+        // Contrôles Tactiles (Boutons HTML)
+        function changeDirection(dir) {
+            if (dir == "LEFT" && d != "RIGHT") d = "LEFT";
+            else if (dir == "UP" && d != "DOWN") d = "UP";
+            else if (dir == "RIGHT" && d != "LEFT") d = "RIGHT";
+            else if (dir == "DOWN" && d != "UP") d = "DOWN";
+        }
+
+        // Boucle de dessin
+        function draw() {
+            // Effacer l'écran
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Dessiner le serpent
+            for (let i = 0; i < snake.length; i++) {
+                ctx.fillStyle = (i == 0) ? "#00ffff" : "#ff00ff"; // Tête bleue, corps rose
+                ctx.fillRect(snake[i].x, snake[i].y, box, box);
+                
+                ctx.strokeStyle = "black";
+                ctx.strokeRect(snake[i].x, snake[i].y, box, box);
+            }
+
+            // Dessiner la nourriture
+            ctx.fillStyle = "yellow";
+            ctx.fillRect(food.x, food.y, box, box);
+
+            // Ancienne position de la tête
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            // Déplacement
+            if (d == "LEFT") snakeX -= box;
+            if (d == "UP") snakeY -= box;
+            if (d == "RIGHT") snakeX += box;
+            if (d == "DOWN") snakeY += box;
+
+            // Si le serpent mange la nourriture
+            if (snakeX == food.x && snakeY == food.y) {
+                score++;
+                scoreElement.innerText = score;
+                createFood();
+                // Ne pas retirer la queue (le serpent grandit)
+            } else {
+                // Retirer la queue (le serpent bouge)
+                snake.pop();
+            }
+
+            // Nouvelle tête
+            let newHead = { x: snakeX, y: snakeY };
+
+            // Game Over (Mur ou Collision soi-même)
+            if (snakeX < 0 || snakeX >= canvas.width || snakeY < 0 || snakeY >= canvas.height || collision(newHead, snake)) {
+                clearInterval(game);
+                menuElement.style.display = "flex"; // Réafficher le menu
+                document.querySelector('#game-menu h2').innerText = "GAME OVER";
+                return;
+            }
+
+            snake.unshift(newHead);
+        }
+
+        function collision(head, array) {
+            for (let i = 0; i < array.length; i++) {
+                if (head.x == array[i].x && head.y == array[i].y) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        // Lancer le jeu
+        function startGame() {
+            menuElement.style.display = "none";
+            initGame();
+            if(game) clearInterval(game);
+            d = "RIGHT"; // Départ vers la droite par défaut
+            game = setInterval(draw, 100); // Vitesse du jeu (100ms)
+        }
+
+    </script>
+</body>
+</html>
